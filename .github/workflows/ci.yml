@@ -80,6 +80,6 @@ jobs:
               actions: [{
                 label: 'Compare',
                 description: 'Compare current build against base state.',
-                identifier: context.runId,
+                identifier: `${context.runId}`,
               }],
             });
