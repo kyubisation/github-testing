@@ -1,0 +1,96 @@
+name: Continuous Integration
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  reset-chromatic-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    outputs:
+      check_run_id: ${{ steps.create_check.outputs.result }}
+    steps:
+      - uses: actions/github-script@v6
+        id: create_check
+        with:
+          result-encoding: string
+          script: |
+            const check = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Chromatic check',
+              head_sha: context.payload.pull_request.head.sha
+            });
+            return check.data.id;
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile --non-interactive
+
+      - name: Run build
+        run: |
+          mkdir storybook-static
+          echo "test" => storybook-static/example.js
+      - name: Store stencil artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: stencil
+          path: |
+            dist/
+            hydrate/
+            loader/
+            react-library/dist/
+      - name: Store storybook artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: storybook
+          path: storybook-static/
+
+  chromatic:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [reset-chromatic-check, build]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: yarn install --frozen-lockfile --non-interactive
+      - name: Restore stencil artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: stencil
+          path: .
+      - name: Run build
+        run: |
+          mkdir storybook-static
+          echo "test" => storybook-static/example.js
+      - name: Store chromatic artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: chromatic
+          path: storybook-static/
+      - uses: actions/github-script@v6
+        id: create_check
+        env:
+          check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
+        with:
+          result-encoding: string
+          script: |
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: process.env.check_run_id,
+              actions: [{
+                label: 'Compare',
+                description: 'Compare current build against base state.',
+                identifier: context.runId,
+              }],
+            });

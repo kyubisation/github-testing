@@ -1,0 +1,8 @@
+{
+  "name": "github-testing",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/kyubisation/github-testing",
+  "author": "Lukas Spirig <lukas.spirig@gmail.com>",
+  "license": "Apache-2.0"
+}

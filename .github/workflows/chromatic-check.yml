@@ -1,0 +1,15 @@
+name: Chromatic check
+on:
+  check_run:
+    types: [requested_action]
+
+jobs:
+  reset-chromatic-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        id: create_check
+        with:
+          result-encoding: string
+          script: |
+            console.log(JSON.stringify(context, null, 2));
