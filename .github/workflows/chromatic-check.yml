@@ -1,7 +1,5 @@
 name: Chromatic check
-on:
-  check_run:
-    types: [requested_action]
+on: [check_run]
 
 jobs:
   reset-chromatic-check:
