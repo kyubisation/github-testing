@@ -42,15 +42,6 @@ jobs:
         run: |
           mkdir storybook-static
           echo "test" => storybook-static/example.js
-      - name: Store stencil artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: stencil
-          path: |
-            dist/
-            hydrate/
-            loader/
-            react-library/dist/
       - name: Store storybook artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -66,11 +57,6 @@ jobs:
         with:
           fetch-depth: 0
       - run: yarn install --frozen-lockfile --non-interactive
-      - name: Restore stencil artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: stencil
-          path: .
       - name: Run build
         run: |
           mkdir storybook-static
