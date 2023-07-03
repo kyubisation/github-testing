@@ -77,6 +77,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               check_run_id: process.env.check_run_id,
+              conclusion: 'action_required',
               actions: [{
                 label: 'Compare',
                 description: 'Compare current build against base.',
