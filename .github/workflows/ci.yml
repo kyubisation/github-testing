@@ -79,7 +79,7 @@ jobs:
               check_run_id: process.env.check_run_id,
               actions: [{
                 label: 'Compare',
-                description: 'Compare current build against base state.',
+                description: 'Compare current build against base.',
                 identifier: `${context.runId}`,
               }],
             });
