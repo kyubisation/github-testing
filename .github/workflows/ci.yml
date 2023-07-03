@@ -66,12 +66,19 @@ jobs:
         with:
           name: chromatic
           path: storybook-static/
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PEM }}
       - uses: actions/github-script@v6
         id: create_check
         env:
           check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
         with:
           result-encoding: string
+          github-token: ${{ steps.generate_token.outputs.token }}
           script: |
             await github.rest.checks.update({
               owner: context.repo.owner,
