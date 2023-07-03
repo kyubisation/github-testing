@@ -1,5 +1,10 @@
 name: Chromatic check
-on: [check_run]
+on:
+  check_run:
+    types: [requested_action]
+
+permissions:
+  checks: write
 
 jobs:
   reset-chromatic-check:
