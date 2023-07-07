@@ -5,6 +5,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  checks: write
+
 jobs:
   reset-chromatic-check:
     runs-on: ubuntu-latest
@@ -12,10 +15,17 @@ jobs:
     outputs:
       check_run_id: ${{ steps.create_check.outputs.result }}
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PEM }}
       - uses: actions/github-script@v6
         id: create_check
         with:
           result-encoding: string
+          github-token: ${{ steps.generate_token.outputs.token }}
           script: |
             const check = await github.rest.checks.create({
               owner: context.repo.owner,
@@ -39,15 +49,6 @@ jobs:
         run: |
           mkdir storybook-static
           echo "test" => storybook-static/example.js
-      - name: Store stencil artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: stencil
-          path: |
-            dist/
-            hydrate/
-            loader/
-            react-library/dist/
       - name: Store storybook artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -63,11 +64,6 @@ jobs:
         with:
           fetch-depth: 0
       - run: yarn install --frozen-lockfile --non-interactive
-      - name: Restore stencil artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: stencil
-          path: .
       - name: Run build
         run: |
           mkdir storybook-static
@@ -77,12 +73,19 @@ jobs:
         with:
           name: chromatic
           path: storybook-static/
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PEM }}
       - uses: actions/github-script@v6
         id: create_check
         env:
           check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
         with:
           result-encoding: string
+          github-token: ${{ steps.generate_token.outputs.token }}
           script: |
             await github.rest.checks.update({
               owner: context.repo.owner,
@@ -90,7 +93,7 @@ jobs:
               check_run_id: process.env.check_run_id,
               actions: [{
                 label: 'Compare',
-                description: 'Compare current build against base state.',
-                identifier: context.runId,
+                description: 'Compare current build against base.',
+                identifier: `${context.runId}`,
               }],
             });
