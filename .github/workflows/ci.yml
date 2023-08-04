@@ -9,6 +9,19 @@ permissions:
   checks: write
 
 jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ github }}"
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(context)
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(JSON.stringify(context))
+  
   reset-chromatic-check:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
