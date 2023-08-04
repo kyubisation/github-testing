@@ -12,7 +12,7 @@ jobs:
   info:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "${{ github }}"
+      - run: echo "${{ toJSON(github) }}"
       - uses: actions/github-script@v6
         with:
           script: |
