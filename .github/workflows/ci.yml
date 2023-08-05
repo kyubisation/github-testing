@@ -24,7 +24,7 @@ jobs:
       - id: major
         env:
           VERSION: "16.1.2"
-        run: echo "version=${VERSION##*.}" >> "$GITHUB_OUTPUT"
+        run: echo "version=${VERSION##*\.}" >> "$GITHUB_OUTPUT"
       - run: echo "${steps.major.outputs.version}"
   
   reset-chromatic-check:
