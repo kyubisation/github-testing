@@ -14,7 +14,7 @@ env:
 jobs:
   peer-review-required:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && (github.event.action == 'ready_for_review' || !github.event.pull_request.draft)
+    if: github.event_name == 'pull_request_target' && (github.event.action == 'ready_for_review' || !github.event.pull_request.draft)
     steps:
       - run: echo "${{ toJSON(github) }}"
       - name: Check labels of pull request
