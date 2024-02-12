@@ -17,13 +17,27 @@ env:
   UX_APPROVED: "pr: ux review approved"
     
 jobs:
+  # Workaround for the limitation of being unable to use env in job if block.
+  # https://github.com/actions/runner/issues/1189
+  pr-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target'
+    outputs:
+      PEER_REQUIRED: ${{ steps.env.outputs.PEER_REQUIRED }}
+      PEER_APPROVED: ${{ steps.env.outputs.PEER_APPROVED }}
+    steps:
+      - id: env
+        run: |
+          echo "PEER_REQUIRED=$PEER_REQUIRED" >> "${GITHUB_OUTPUT}"
+          echo "PEER_APPROVED=$PEER_APPROVED" >> "${GITHUB_OUTPUT}"
+
   peer-review-required:
     runs-on: ubuntu-latest
+    needs: pr-check
     if: >
-      github.event_name == 'pull_request_target' &&
       !github.event.pull_request.draft &&
       !contains(github.event.pull_request.title, '[WIP]') &&
-      !contains(github.event.pull_request.labels.*.name, '${{ env.PEER_APPROVED }}')
+      !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED)
     steps:
       - run: echo "${{ toJSON(github) }}"
       - name: Assign peer review required label
@@ -31,14 +45,14 @@ jobs:
 
   peer-review-not-required:
     runs-on: ubuntu-latest
+    needs: pr-check
     if: >
-      github.event_name == 'pull_request_target' &&
       (
         github.event.pull_request.draft ||
         contains(github.event.pull_request.title, '[WIP]') ||
         github.event.action == 'closed'
       ) &&
-      contains(github.event.pull_request.labels.*.name, '${{ env.PEER_REQUIRED }}')
+      contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED)
     steps:
       - run: echo "${{ toJSON(github) }}"
       - name: Remove peer review required label
