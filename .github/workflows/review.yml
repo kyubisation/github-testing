@@ -1,42 +1,86 @@
 name: Review Labelling
 on:
   pull_request_target:
-    types: [converted_to_draft, opened, ready_for_review, reopened, unlabeled]
+    types: [closed, converted_to_draft, edited, opened, ready_for_review, reopened, unlabeled]
   pull_request_review:
     types: [submitted]
+
+permissions:
+  pull-requests: write
 
 env:
   PEER_REQUIRED: "pr: peer review required"
   PEER_APPROVED: "pr: peer review approved"
+  LEAD_REQUIRED: "pr: lead review required"
   LEAD_APPROVED: "pr: lead review approved"
+  UX_REQUIRED: "pr: ux review required"
   UX_APPROVED: "pr: ux review approved"
     
 jobs:
   peer-review-required:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target' && (github.event.action == 'ready_for_review' || !github.event.pull_request.draft)
+    if: >
+      github.event_name == 'pull_request_target' &&
+      !github.event.pull_request.draft &&
+      !contains(github.event.pull_request.title, "[WIP]") &&
+      !contains(github.event.pull_request.labels.*.name, env.PEER_APPROVED)
     steps:
       - run: echo "${{ toJSON(github) }}"
-      - name: Check labels of pull request
-        id: check-label
-        run: echo "has-label=$(gh issue view ${{ github.event.number }} --json labels --jq '[.labels[].name | contains("${{ env.PEER_APPROVED }}")] | any')" >> "$GITHUB_OUTPUT"
-      - name: Add peer review required label if necessary
-        if: steps.check-label.outputs.has-label != 'true'
+      - name: Assign peer review required label
         run: gh issue edit ${{ github.event.number }} --add-label "$PEER_REQUIRED"
+
+  peer-review-not-required:
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request_target' &&
+      (
+        github.event.pull_request.draft ||
+        contains(github.event.pull_request.title, "[WIP]") ||
+        github.event.action == 'closed'
+      ) &&
+      contains(github.event.pull_request.labels.*.name, env.PEER_REQUIRED)
+    steps:
+      - run: echo "${{ toJSON(github) }}"
+      - name: Remove peer review required label
+        run: gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
 
   approved:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request_review' && github.event.review.state == 'APPROVED'
     steps:
       - run: echo "${{ toJSON(github) }}"
+      - name: Resolve team membership
+        id: team
+        run: |
+          coreMember=$(
+            gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              /orgs/${{ github.repository_owner }}/teams/core/memberships/${{ github.actor }} \
+              | jq '(.role + "." + .state)'
+          )
+          echo "core-member=$coreMember" >> "$GITHUB_OUTPUT"
+
+          uxMember=$(
+            gh api \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              /orgs/${{ github.repository_owner }}/teams/UX/memberships/${{ github.actor }} \
+              | jq '(.role + "." + .state)'
+          )
+          echo "ux-member=$uxMember" >> "$GITHUB_OUTPUT"
       - name: Assign peer review approved label
+        if: steps.team.outputs.core-member == 'member.active'
         run: |
           gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
           gh issue edit ${{ github.event.number }} --add-label "$PEER_APPROVED"
-
-
-  review:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_review'
-    steps:
-      - run: echo "${{ toJSON(github) }}"
+      - name: Assign lead review approved label
+        if: steps.team.outputs.core-member == 'maintainer.active'
+        run: |
+          gh issue edit ${{ github.event.number }} --remove-label "$LEAD_REQUIRED"
+          gh issue edit ${{ github.event.number }} --add-label "$LEAD_APPROVED"
+      - name: Assign ux review approved label
+        if: steps.team.outputs.ux-member == 'maintainer.active' || steps.team.outputs.ux-member == 'member.active'
+        run: |
+          gh issue edit ${{ github.event.number }} --remove-label "$UX_REQUIRED"
+          gh issue edit ${{ github.event.number }} --add-label "$UX_APPROVED"
