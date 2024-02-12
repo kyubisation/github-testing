@@ -39,10 +39,10 @@ jobs:
     needs: pr-check
     steps:
       - run: |
-        echo "PEER_APPROVED: ${{ needs.pr-check.outputs.PEER_APPROVED }}"
-        echo "PEER_REQUIRED: ${{ needs.pr-check.outputs.PEER_REQUIRED }}"
-        echo "PEER_REQUIRED contains: ${{ contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED) }}"
-        echo "PEER_APPROVED contains: ${{ !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED) }}"
+          echo "1 ${{ needs.pr-check.outputs.PEER_APPROVED }}"
+          echo "2 ${{ needs.pr-check.outputs.PEER_REQUIRED }}"
+          echo "3 ${{ contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED) }}"
+          echo "4 ${{ !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED) }}"
 
   peer-review-required:
     runs-on: ubuntu-latest
