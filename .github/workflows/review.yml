@@ -33,3 +33,10 @@ jobs:
         run: |
           gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
           gh issue edit ${{ github.event.number }} --add-label "$PEER_APPROVED"
+
+
+  review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_review'
+    steps:
+      - run: echo "${{ toJSON(github) }}"
