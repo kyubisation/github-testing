@@ -15,6 +15,7 @@ env:
   LEAD_APPROVED: "pr: lead review approved"
   UX_REQUIRED: "pr: ux review required"
   UX_APPROVED: "pr: ux review approved"
+  GH_TOKEN: ${{ github.token }}
     
 jobs:
   # Workaround for the limitation of being unable to use env in job if block.
