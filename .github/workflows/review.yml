@@ -22,7 +22,7 @@ jobs:
     if: >
       github.event_name == 'pull_request_target' &&
       !github.event.pull_request.draft &&
-      !contains(github.event.pull_request.title, "[WIP]") &&
+      !contains(github.event.pull_request.title, '[WIP]') &&
       !contains(github.event.pull_request.labels.*.name, env.PEER_APPROVED)
     steps:
       - run: echo "${{ toJSON(github) }}"
@@ -35,7 +35,7 @@ jobs:
       github.event_name == 'pull_request_target' &&
       (
         github.event.pull_request.draft ||
-        contains(github.event.pull_request.title, "[WIP]") ||
+        contains(github.event.pull_request.title, '[WIP]') ||
         github.event.action == 'closed'
       ) &&
       contains(github.event.pull_request.labels.*.name, env.PEER_REQUIRED)
