@@ -1,9 +1,35 @@
+name: Review Labelling
 on:
-  pull_request:
-    types: [ready_for_review]
+  pull_request_target:
+    types: [converted_to_draft, opened, ready_for_review, reopened, unlabeled]
+  pull_request_review:
+    types: [submitted]
+
+env:
+  PEER_REQUIRED: "pr: peer review required"
+  PEER_APPROVED: "pr: peer review approved"
+  LEAD_APPROVED: "pr: lead review approved"
+  UX_APPROVED: "pr: ux review approved"
     
 jobs:
-  specific_review_requested:
+  peer-review-required:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'ready_for_review' || !github.event.pull_request.draft)
     steps:
       - run: echo "${{ toJSON(github) }}"
+      - name: Check labels of pull request
+        id: check-label
+        run: echo "has-label=$(gh issue view ${{ github.event.number }} --json labels --jq '[.labels[].name | contains("${{ env.PEER_APPROVED }}")] | any')" >> "$GITHUB_OUTPUT"
+      - name: Add peer review required label if necessary
+        if: steps.check-label.outputs.has-label != 'true'
+        run: gh issue edit ${{ github.event.number }} --add-label "$PEER_REQUIRED"
+
+  approved:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_review' && github.event.review.state == 'APPROVED'
+    steps:
+      - run: echo "${{ toJSON(github) }}"
+      - name: Assign peer review approved label
+        run: |
+          gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
+          gh issue edit ${{ github.event.number }} --add-label "$PEER_APPROVED"
