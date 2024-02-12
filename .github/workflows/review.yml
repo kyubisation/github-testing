@@ -33,7 +33,6 @@ jobs:
         run: |
           echo "PEER_REQUIRED=$PEER_REQUIRED" >> "${GITHUB_OUTPUT}"
           echo "PEER_APPROVED=$PEER_APPROVED" >> "${GITHUB_OUTPUT}"
-          cat "${GITHUB_OUTPUT}"
 
   test:
     runs-on: ubuntu-latest
@@ -54,7 +53,7 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED)
     steps:
       - name: Assign peer review required label
-        run: gh issue edit ${{ github.event.number }} --add-label "$PEER_REQUIRED"
+        run: gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --add-label "$PEER_REQUIRED"
 
   peer-review-not-required:
     runs-on: ubuntu-latest
@@ -68,7 +67,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED)
     steps:
       - name: Remove peer review required label
-        run: gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
+        run: gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --remove-label "$PEER_REQUIRED"
 
   approved:
     runs-on: ubuntu-latest
@@ -98,15 +97,15 @@ jobs:
       - name: Assign peer review approved label
         if: steps.team.outputs.core-member == 'member.active'
         run: |
-          gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
-          gh issue edit ${{ github.event.number }} --add-label "$PEER_APPROVED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --remove-label "$PEER_REQUIRED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --add-label "$PEER_APPROVED"
       - name: Assign lead review approved label
         if: steps.team.outputs.core-member == 'maintainer.active'
         run: |
-          gh issue edit ${{ github.event.number }} --remove-label "$LEAD_REQUIRED"
-          gh issue edit ${{ github.event.number }} --add-label "$LEAD_APPROVED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --remove-label "$LEAD_REQUIRED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --add-label "$LEAD_APPROVED"
       - name: Assign ux review approved label
         if: steps.team.outputs.ux-member == 'maintainer.active' || steps.team.outputs.ux-member == 'member.active'
         run: |
-          gh issue edit ${{ github.event.number }} --remove-label "$UX_REQUIRED"
-          gh issue edit ${{ github.event.number }} --add-label "$UX_APPROVED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --remove-label "$UX_REQUIRED"
+          gh issue edit ${{ github.event.number }} --repo ${{ github.repository }} --add-label "$UX_APPROVED"
