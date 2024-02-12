@@ -26,10 +26,23 @@ jobs:
       PEER_REQUIRED: ${{ steps.env.outputs.PEER_REQUIRED }}
       PEER_APPROVED: ${{ steps.env.outputs.PEER_APPROVED }}
     steps:
-      - id: env
+      - run: echo "${{ toJSON(github) }}"
+      - name: Copy variables
+        id: env
         run: |
           echo "PEER_REQUIRED=$PEER_REQUIRED" >> "${GITHUB_OUTPUT}"
           echo "PEER_APPROVED=$PEER_APPROVED" >> "${GITHUB_OUTPUT}"
+          cat "${GITHUB_OUTPUT}"
+
+  test:
+    runs-on: ubuntu-latest
+    needs: pr-check
+    steps:
+      - run: |
+        echo "PEER_APPROVED: ${{ needs.pr-check.outputs.PEER_APPROVED }}"
+        echo "PEER_REQUIRED: ${{ needs.pr-check.outputs.PEER_REQUIRED }}"
+        echo "PEER_REQUIRED contains: ${{ contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED) }}"
+        echo "PEER_APPROVED contains: ${{ !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED) }}"
 
   peer-review-required:
     runs-on: ubuntu-latest
@@ -39,7 +52,6 @@ jobs:
       !contains(github.event.pull_request.title, '[WIP]') &&
       !contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_APPROVED)
     steps:
-      - run: echo "${{ toJSON(github) }}"
       - name: Assign peer review required label
         run: gh issue edit ${{ github.event.number }} --add-label "$PEER_REQUIRED"
 
@@ -54,7 +66,6 @@ jobs:
       ) &&
       contains(github.event.pull_request.labels.*.name, needs.pr-check.outputs.PEER_REQUIRED)
     steps:
-      - run: echo "${{ toJSON(github) }}"
       - name: Remove peer review required label
         run: gh issue edit ${{ github.event.number }} --remove-label "$PEER_REQUIRED"
 
