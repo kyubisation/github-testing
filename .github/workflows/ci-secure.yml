@@ -22,3 +22,37 @@ jobs:
         with:
           script: |
             console.log(context)
+
+  visual-regression:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    permissions:
+      checks: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Create Visual Regression Check
+        id: tag-name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const payload = { owner: context.repo.owner, repo: context.repo.repo, environment };
+            const { data: deployment } = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head_sha: context.payload.workflow_run.head_sha,
+              name: 'Visual Regression Check',
+              details_url: `https://lyne-visual-diff-pr${process.env.PR_NUMBER}.app.sbb.ch`,
+              status: 'pending',
+            });
+
+            return 'available';
+          result-encoding: string
+  
