@@ -1,3 +1,3 @@
 # github-testing
 
-Testing github functionality and playground.
+Testing github functionality.
