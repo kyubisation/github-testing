@@ -50,7 +50,7 @@ jobs:
               head_sha: context.payload.workflow_run.head_sha,
               name: 'Visual Regression Check',
               details_url: `https://lyne-visual-diff-pr${process.env.PR_NUMBER}.app.sbb.ch`,
-              status: 'pending',
+              status: 'in_progress',
             });
 
             return 'available';
