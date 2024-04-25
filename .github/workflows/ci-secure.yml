@@ -54,7 +54,8 @@ jobs:
             -f "details_url=https://example.com/$PR_NUMBER" \
             -f "output[title]=Visual Regression Check" \
             -f "output[summary]=https://example.com/$PR_NUMBER" \
-            -f $'output[text]=test\nqwer'
+            -f "output[text]=test
+          qwer"
 
       - name: Create Visual Regression Check
         id: tag-name
