@@ -15,6 +15,7 @@ permissions:
   
 env:
   GH_TOKEN: ${{ github.token }}
+  PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0] != null && github.event.workflow_run.pull_requests[0].number || '' }}
 
 jobs:
   codecov:
@@ -50,10 +51,10 @@ jobs:
             -f "name=Visual Regression Check" \
             -f "head_sha=${{ github.event.workflow_run.head_sha }}" \
             -f "status=in_progress" \
-            -f "details_url=https://example.com" \
+            -f "details_url=https://example.com/$PR_NUMBER" \
             -f "output[title]=Visual Regression Check" \
-            -f "output[summary]=https://example.com" \
-            -f "output[text]="
+            -f "output[summary]=https://example.com/$PR_NUMBER" \
+            -f "output[text]=test\nqwer"
 
       - name: Create Visual Regression Check
         id: tag-name
