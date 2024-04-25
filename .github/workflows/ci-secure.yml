@@ -57,6 +57,8 @@ jobs:
             -f "output[text]=test
           qwer"
 
+          gh pr checks $PR_NUMBER
+
       - name: Create Visual Regression Check
         id: tag-name
         if: false
