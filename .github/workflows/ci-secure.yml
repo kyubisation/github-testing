@@ -38,8 +38,23 @@ jobs:
           node-version-file: .nvmrc
           cache: yarn
 
+      - run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/check-runs \
+            -f "name=Visual Regression Check" \
+            -f "head_sha=${{ github.event.workflow_run.head_sha }}" \
+            -f "status=in_progress" \
+            -f "details_url=https://example.com" \
+            -f "output[title]=Visual Regression Check" \
+            -f "output[summary]=https://example.com" \
+            -f "output[text]="
+
       - name: Create Visual Regression Check
         id: tag-name
+        if: false
         uses: actions/github-script@v7
         with:
           script: |
