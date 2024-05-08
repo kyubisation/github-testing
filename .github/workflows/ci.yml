@@ -76,11 +76,8 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/github-script@v6
         id: create_check
-        env:
-          check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
         with:
           result-encoding: string
-          github-token: ${{ steps.generate_token.outputs.token }}
           script: |
             const { readdirSync, statSync } = await import('node:fs');
             const size = readdirSync('.github/', {
@@ -90,10 +87,12 @@ jobs:
               .filter((d) => d.isFile())
               .reduce((count, f) => count + statSync(f.path).size, 0);
               
-            await github.rest.checks.update({
+            await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              check_run_id: process.env.check_run_id,
+              name: 'Size Check',
+              head_sha: context.payload.workflow_run.head_sha,
+              conclusion: 'success',
               output: {
                 title: 'Title test',
                 summary: `Size: ${size}`,
