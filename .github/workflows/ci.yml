@@ -80,17 +80,12 @@ jobs:
           result-encoding: string
           script: |
             const { readdirSync, statSync } = await import('node:fs');
-            console.log(readdirSync('.github', {
-              withFileTypes: true,
-              recursive: true,
-            }))
             const size = readdirSync('.github', {
               withFileTypes: true,
               recursive: true,
             })
               .filter((d) => d.isFile())
               .reduce((count, f) => count + statSync(f.path).size, 0);
-            console.log(context);
               
             await github.rest.checks.create({
               owner: context.repo.owner,
@@ -99,7 +94,7 @@ jobs:
               head_sha: context.sha,
               conclusion: 'success',
               output: {
-                title: 'Title test',
+                title: `Total Size ${size}`,
                 summary: `Size: ${size}`,
                 text: `<!-- BEGIN_JSON${JSON.stringify({size})}END_JSON -->`,
               },

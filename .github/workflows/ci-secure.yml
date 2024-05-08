@@ -60,10 +60,10 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               head_sha: context.payload.workflow_run.head_sha,
-              name: `Size Check ${size}`,
+              name: `Size Check`,
               conclusion: 'success',
               output: {
-                title: 'Title test',
+                title: `Total Size ${size}`,
                 summary: `Size: ${size}`,
                 text: `<!-- BEGIN_JSON${JSON.stringify({size})}END_JSON -->`,
               },
