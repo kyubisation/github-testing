@@ -80,7 +80,7 @@ jobs:
           result-encoding: string
           script: |
             const { readdirSync, statSync } = await import('node:fs');
-            const size = readdirSync(__dirname, {
+            const size = readdirSync(process.cwd(), {
               withFileTypes: true,
               recursive: true,
             })
