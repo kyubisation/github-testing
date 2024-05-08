@@ -1,3 +1,3 @@
 # github-testing
 
-Testing github functionality.
+Testing github functionality with actions.
