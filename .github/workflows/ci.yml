@@ -92,7 +92,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'Size Check',
-              head_sha: context.payload.sha,
+              head_sha: context.sha,
               conclusion: 'success',
               output: {
                 title: 'Title test',
