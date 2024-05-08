@@ -86,6 +86,7 @@ jobs:
             })
               .filter((d) => d.isFile())
               .reduce((count, f) => count + statSync(f.path).size, 0);
+            console.log(context);
               
             await github.rest.checks.create({
               owner: context.repo.owner,
