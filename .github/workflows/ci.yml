@@ -72,6 +72,39 @@ jobs:
         with:
           name: storybook
           path: storybook-static/
+      - name: Create size check
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/github-script@v6
+        id: create_check
+        env:
+          check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
+        with:
+          result-encoding: string
+          github-token: ${{ steps.generate_token.outputs.token }}
+          script: |
+            const { readdirSync, statSync } = await import('node:fs');
+            const size = readdirSync('.github/', {
+              withFileTypes: true,
+              recursive: true,
+            })
+              .filter((d) => d.isFile())
+              .reduce((count, f) => count + statSync(f.path).size, 0);
+              
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: process.env.check_run_id,
+              output: {
+                title: 'Title test',
+                summary: `Size: ${size}`,
+                text: `<!-- BEGIN_JSON${JSON.stringify({size})}END_JSON -->`,
+              },
+              actions: [{
+                label: 'Compare',
+                description: 'Compare current build against base.',
+                identifier: `${context.runId}`,
+              }],
+            });
 
   chromatic:
     runs-on: ubuntu-latest
