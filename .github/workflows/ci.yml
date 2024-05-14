@@ -12,6 +12,7 @@ jobs:
   info:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - run: echo "${{ toJSON(github) }}"
       - uses: actions/github-script@v6
         with:
@@ -20,7 +21,11 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            console.log(JSON.stringify(context))
+            console.log(JSON.stringify(context, null, 2))
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            console.log(require('./package.json'))
       - id: major
         env:
           VERSION: "16.1.2"
