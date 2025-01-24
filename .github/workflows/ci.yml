@@ -8,6 +8,9 @@ concurrency:
 permissions:
   checks: write
 
+env:
+  IMAGE_REPO_PREVIEW: ghcr.io/${{ github.repository }}/preview
+
 jobs:
   info:
     runs-on: ubuntu-latest
@@ -27,123 +30,20 @@ jobs:
         run: echo "version=${VERSION%%.*}" >> "$GITHUB_OUTPUT"
       - run: echo "${{ steps.major.outputs.version }}"
   
-  reset-chromatic-check:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    outputs:
-      check_run_id: ${{ steps.create_check.outputs.result }}
-    steps:
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PEM }}
-      - uses: actions/github-script@v6
-        id: create_check
-        with:
-          result-encoding: string
-          github-token: ${{ steps.generate_token.outputs.token }}
-          script: |
-            const check = await github.rest.checks.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'Chromatic check',
-              head_sha: context.payload.pull_request.head.sha
-            });
-            return check.data.id;
-
   build:
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+      packages: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-      - run: yarn install --frozen-lockfile --non-interactive
-
-      - name: Run build
+      - uses: ./.github/actions/setup-mint
+      - name: 'Container: Build and preview image'
         run: |
-          mkdir storybook-static
-          echo "test" => storybook-static/example.js
-      - name: Store storybook artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: storybook
-          path: storybook-static/
-      - name: Create size check
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/github-script@v6
-        id: create_check
-        with:
-          result-encoding: string
-          script: |
-            const { readdirSync, statSync } = await import('node:fs');
-            const size = readdirSync('.github', {
-              withFileTypes: true,
-              recursive: true,
-            })
-              .filter((d) => d.isFile())
-              .reduce((count, f) => count + statSync(f.path).size, 0);
-              
-            await github.rest.checks.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'Size Check',
-              head_sha: context.sha,
-              conclusion: 'success',
-              output: {
-                title: `Total Size ${size}`,
-                summary: `Size: ${size}`,
-                text: `<!-- BEGIN_JSON${JSON.stringify({size})}END_JSON -->`,
-              },
-              actions: [{
-                label: 'Compare',
-                description: 'Compare current build against base.',
-                identifier: `${context.runId}`,
-              }],
-            });
-
-  chromatic:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    needs: [reset-chromatic-check, build]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - run: yarn install --frozen-lockfile --non-interactive
-      - name: Run build
-        run: |
-          mkdir storybook-static
-          echo "test" => storybook-static/example.js
-      - name: Store chromatic artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: chromatic
-          path: storybook-static/
-      - name: Generate token
-        id: generate_token
-        uses: tibdex/github-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PEM }}
-      - uses: actions/github-script@v6
-        id: create_check
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          docker build --tag $IMAGE_REPO_PREVIEW:main-fat .
+          mint slim --target $IMAGE_REPO_PREVIEW:main-fat --tag $IMAGE_REPO_PREVIEW:main --preserve-path /usr/share/nginx/html
+          docker push $IMAGE_REPO_PREVIEW:main
+          docker image list
         env:
-          check_run_id: ${{ needs.reset-chromatic-check.outputs.check_run_id }}
-        with:
-          result-encoding: string
-          github-token: ${{ steps.generate_token.outputs.token }}
-          script: |
-            await github.rest.checks.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              check_run_id: process.env.check_run_id,
-              actions: [{
-                label: 'Compare',
-                description: 'Compare current build against base.',
-                identifier: `${context.runId}`,
-              }],
-            });
+          DOCKER_BUILDKIT: 1
