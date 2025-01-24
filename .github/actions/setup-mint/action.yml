@@ -22,6 +22,3 @@ runs:
         fi
         echo "/tmp/mint" >> $GITHUB_PATH
       shell: bash
-    - name: Run mint
-      run: mint slim --target ${{ inputs.target }} --tag ${{ inputs.target }}-slim --preserve-path /usr/share/nginx/html
-      shell: bash
