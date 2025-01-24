@@ -37,6 +37,7 @@ jobs:
       packages: write
       pull-requests: write
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-mint
       - name: 'Container: Build and preview image'
         run: |
