@@ -18,6 +18,7 @@ jobs:
       - run: echo "$HOME"
       - run: echo "$PWD"
       - run: echo "$PATH"
+      - run: env -0 | sort -z | tr '\0' '\n'
       - run: echo "${{ toJSON(github) }}"
       - uses: actions/github-script@v6
         with:
