@@ -19,6 +19,18 @@ jobs:
       - run: echo "$PWD"
       - run: echo "$PATH"
       - run: env -0 | sort -z | tr '\0' '\n'
+      - name: Setup mint
+        run: |
+          cd "$HOME/.local/bin"
+  
+          # Get the current released tag_name
+          VER=$(curl -sL https://api.github.com/repos/mintoolkit/mint/releases \
+            | grep tag_name | head -n1 | cut -d'"' -f4)
+          curl -L -o mint.tar.gz "https://github.com/mintoolkit/mint/releases/download/${VER}/dist_linux.tar.gz"
+          tar -xvf mint.tar.gz --strip-components 1
+  
+          echo "Installed mint:${VER}"
+      - run: mint -v
       - run: echo "${{ toJSON(github) }}"
       - uses: actions/github-script@v6
         with:
