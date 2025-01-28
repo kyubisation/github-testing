@@ -21,6 +21,7 @@ jobs:
       - run: env -0 | sort -z | tr '\0' '\n'
       - name: Setup mint
         run: |
+          mkdir -p "$HOME/.local/bin"
           cd "$HOME/.local/bin"
   
           # Get the current released tag_name
