@@ -18,6 +18,7 @@ jobs:
       - run: echo "$HOME"
       - run: echo "$PWD"
       - run: echo "$PATH"
+      - run: ls -la "$HOME/.local/bin"
       - run: env -0 | sort -z | tr '\0' '\n'
       - name: Setup mint
         run: |
