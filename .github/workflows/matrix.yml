@@ -55,6 +55,6 @@ jobs:
       - run: |
           mkdir -p dist/screenshots
           for file in matrix-coverage-*/; do
-            mv -f "$file"* "dist/screenshots/"
+            cp -RT "$file" "dist/screenshots/"
           done
           ls -Rla dist/screenshots
