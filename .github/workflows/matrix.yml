@@ -22,8 +22,9 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile --non-interactive
       - run: |
-          mkdir -p coverage
+          mkdir -p coverage/files
           echo "{}" > "coverage/coverage-final.json"
+          echo "{}" > "coverage/files/text${{ matrix.test-module }}.txt"
         env:
           KEY: ${{ matrix.test-module }}
 
@@ -52,8 +53,8 @@ jobs:
       - uses: actions/download-artifact@v4
 
       - run: |
-          mkdir coverage-tmp
-          for file in */coverage-final.json; do
-            mv "$file" "coverage-tmp/$(basename $(dirname $file)).json"
+          mkdir -p dist/screenshot
+          for file in matrix-coverage-*/; do
+            mv -f "$file" "dist/screenshot/"
           done
           ls -Rla coverage-tmp
