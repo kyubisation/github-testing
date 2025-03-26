@@ -22,9 +22,9 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile --non-interactive
       - run: |
-          mkdir -p coverage/files
-          echo "{}" > "coverage/coverage-final.json"
-          echo "{}" > "coverage/files/text${{ matrix.test-module }}.txt"
+          mkdir -p dist/screenshots/files
+          echo "{}" > "dist/screenshots/coverage-final.json"
+          echo "{}" > "dist/screenshots/files/text${{ matrix.test-module }}.txt"
         env:
           KEY: ${{ matrix.test-module }}
 
@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: matrix-coverage-${{ steps.artifact-key.outputs.artifact-key }}
-          path: coverage/
+          path: dist/screenshots/
           retention-days: 1
 
   collect-test-results:
@@ -53,8 +53,8 @@ jobs:
       - uses: actions/download-artifact@v4
 
       - run: |
-          mkdir -p dist/screenshot
+          mkdir -p dist/screenshots
           for file in matrix-coverage-*/; do
-            mv -f "$file" "dist/screenshot/"
+            mv -f "$file" "dist/screenshots/"
           done
-          ls -Rla coverage-tmp
+          ls -Rla dist/screenshots
