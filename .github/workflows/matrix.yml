@@ -10,7 +10,6 @@ permissions: read-all
 jobs:
   test:
     runs-on: ubuntu-latest
-    needs: setup
     strategy:
       fail-fast: false
       matrix:
