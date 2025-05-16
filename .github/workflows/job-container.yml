@@ -1,0 +1,16 @@
+name: Job Container
+on: push
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: docker run -d -p 8080:8080 nginx
+      - run: curl http://localhost:8080/index.html
+  
