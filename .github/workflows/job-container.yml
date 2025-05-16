@@ -11,6 +11,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: docker run -d -p 8080:8080 nginx
+      - run: docker run -d -p 8080:8080 nginxinc/nginx-unprivileged:stable
       - run: curl http://localhost:8080/index.html
   
