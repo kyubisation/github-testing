@@ -16,3 +16,4 @@ jobs:
       - run: echo "${{ inputs.commitMessage }}"
       - run: echo "${{ toJSON(github.event) }}"
       - run: echo "${{ toJSON(github.event.sender) }}"
+      - run: echo "${{ toJSON(github.actor) }}"
