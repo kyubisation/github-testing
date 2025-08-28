@@ -1,0 +1,16 @@
+on:
+  workflow_dispatch:
+    inputs:
+      commitMessage:
+        description: 'Commit Message'
+        required: true
+        default: 'update icons'
+        type: string
+
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ inputs.commitMessage }}"
+      - run: echo "${{ toJSON(github.event) }}"
