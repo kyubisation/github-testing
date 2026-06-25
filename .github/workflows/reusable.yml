@@ -1,0 +1,10 @@
+name: Reusable
+
+on:
+  workflow_call:
+
+jobs:
+  selection:
+    runs-on: ubuntu-slim
+    steps:
+      - run: echo "${{ toJSON(github) }}"

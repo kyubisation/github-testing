@@ -67,3 +67,6 @@ jobs:
           docker image list
         env:
           DOCKER_BUILDKIT: 1
+
+  reuse:
+    uses: ./.github/workflows/reusable.yml
